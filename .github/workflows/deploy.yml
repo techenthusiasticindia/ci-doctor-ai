@@ -1,0 +1,49 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Run Tests
+        working-directory: ./frontend
+        run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Environment
+        run: |
+          echo "Checking required environment variables..."
+          if [ -z "$API_KEY" ]; then
+            echo "ERROR: API_KEY environment variable is not set!"
+            echo "Deployment cannot proceed without API_KEY"
+            exit 1
+          fi
+          echo "Environment validation passed"
+
+      - name: Deploy to Production
+        run: |
+          echo "Deploying application..."
+          echo "Deployment complete"

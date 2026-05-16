@@ -4,77 +4,61 @@ import {
   XCircle,
   CheckCircle,
   AlertCircle,
-} from 'lucide-react'
+  Loader2,
+} from "lucide-react"
 
-function FailurePanel() {
-  const pipelineData = {
-    name: 'main.yml',
-    branch: 'feature/auth-update',
-    commit: 'a3f2c1d',
-    commitMessage: 'Add JWT authentication',
-    author: 'john.doe',
-    timestamp: '2 minutes ago',
-    duration: '1m 34s',
-
-    stages: [
-      { name: 'Setup', status: 'success', duration: '12s' },
-      { name: 'Install Dependencies', status: 'success', duration: '45s' },
-      { name: 'Run Tests', status: 'failed', duration: '23s' },
-      { name: 'Build', status: 'skipped', duration: '-' },
-      { name: 'Deploy', status: 'skipped', duration: '-' },
-    ],
-
-    errorLog: `npm ERR! Test failed. See above for more details.
-npm ERR! A complete log of this run can be found in:
-npm ERR!     /home/runner/.npm/_logs/2024-01-15T10_30_45_123Z-debug.log
-
-FAIL src/auth.test.js
-  ● Authentication › should validate JWT token
-
-    ReferenceError: API_KEY is not defined
-
-      at Object.<anonymous> (src/config.js:12:24)
-      at Object.<anonymous> (src/auth.test.js:5:1)
-
-Test Suites: 1 failed, 5 passed, 6 total
-Tests:       1 failed, 23 passed, 24 total`,
+function FailurePanel({ data, loading }) {
+  if (loading) {
+    return (
+      <div className="bg-[#131A2A] border border-red-500/10 rounded-2xl p-6 shadow-xl shadow-red-500/5">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-5 h-5 text-red-400 animate-spin" />
+          <span className="text-gray-400">Loading failure details...</span>
+        </div>
+      </div>
+    )
   }
+
+  if (!data) {
+    return (
+      <div className="bg-[#131A2A] border border-gray-800 rounded-2xl p-6">
+        <p className="text-gray-500 text-sm">
+          Select a failed pipeline to view details
+        </p>
+      </div>
+    )
+  }
+
+  const { pipeline, errorLog } = data
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'success':
+      case "success":
         return <CheckCircle className="w-4 h-4 text-green-400" />
-
-      case 'failed':
+      case "failed":
         return <XCircle className="w-4 h-4 text-red-400" />
-
-      case 'skipped':
+      case "skipped":
         return <AlertCircle className="w-4 h-4 text-gray-500" />
-
       default:
-        return null
+        return <Clock className="w-4 h-4 text-yellow-400" />
     }
   }
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'success':
-        return 'text-green-400'
-
-      case 'failed':
-        return 'text-red-400'
-
-      case 'skipped':
-        return 'text-gray-500'
-
+      case "success":
+        return "text-green-400"
+      case "failed":
+        return "text-red-400"
+      case "skipped":
+        return "text-gray-500"
       default:
-        return 'text-gray-400'
+        return "text-gray-400"
     }
   }
 
   return (
     <div className="bg-[#131A2A] border border-red-500/10 rounded-2xl p-6 shadow-xl shadow-red-500/5 backdrop-blur-sm">
-
       {/* HEADER */}
       <div className="flex items-start justify-between mb-6">
         <div>
@@ -89,7 +73,7 @@ Tests:       1 failed, 23 passed, 24 total`,
               </h2>
 
               <p className="text-sm text-gray-400 mt-1">
-                GitHub Actions detected a failed deployment workflow
+                {pipeline.name || "GitHub Actions detected a failed workflow"}
               </p>
             </div>
           </div>
@@ -97,7 +81,6 @@ Tests:       1 failed, 23 passed, 24 total`,
           {/* AI DETECTED TAG */}
           <div className="mt-4 inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-full">
             <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-
             <span className="text-xs text-purple-300">
               AI Detected Root Cause
             </span>
@@ -114,7 +97,6 @@ Tests:       1 failed, 23 passed, 24 total`,
 
       {/* PIPELINE INFO */}
       <div className="grid grid-cols-2 gap-4 mb-6 p-5 bg-black/20 rounded-2xl border border-gray-800 backdrop-blur-sm">
-
         {/* BRANCH */}
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-[#131A2A] border border-gray-700">
@@ -125,9 +107,8 @@ Tests:       1 failed, 23 passed, 24 total`,
             <p className="text-xs text-gray-500 uppercase tracking-wide">
               Branch
             </p>
-
             <p className="text-sm text-white font-mono">
-              {pipelineData.branch}
+              {pipeline.branch}
             </p>
           </div>
         </div>
@@ -142,10 +123,7 @@ Tests:       1 failed, 23 passed, 24 total`,
             <p className="text-xs text-gray-500 uppercase tracking-wide">
               Duration
             </p>
-
-            <p className="text-sm text-white">
-              {pipelineData.duration}
-            </p>
+            <p className="text-sm text-white">{pipeline.duration}</p>
           </div>
         </div>
 
@@ -157,80 +135,77 @@ Tests:       1 failed, 23 passed, 24 total`,
 
           <p className="text-sm text-white leading-6">
             <span className="font-mono text-blue-400">
-              {pipelineData.commit}
+              {pipeline.commit}
             </span>
-
-            {' • '}
-
-            {pipelineData.commitMessage}
+            {" • "}
+            {pipeline.commitMessage}
           </p>
 
           <p className="text-xs text-gray-500 mt-2">
-            by {pipelineData.author} • {pipelineData.timestamp}
+            by {pipeline.author} • {pipeline.timestamp}
           </p>
         </div>
       </div>
 
       {/* PIPELINE STAGES */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
-            Pipeline Stages
-          </h3>
+      {pipeline.stages && pipeline.stages.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+              Pipeline Stages
+            </h3>
+            <span className="text-xs text-gray-500">
+              {pipeline.stagesCompleted}
+            </span>
+          </div>
 
-          <span className="text-xs text-gray-500">
-            3/5 completed
-          </span>
-        </div>
+          <div className="space-y-3">
+            {pipeline.stages.map((stage, index) => (
+              <div
+                key={index}
+                className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${
+                  stage.status === "failed"
+                    ? "bg-red-500/10 border-red-500/20 shadow-sm shadow-red-500/10"
+                    : "bg-[#0B1020]/70 border-gray-800"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {getStatusIcon(stage.status)}
+                  <span
+                    className={`text-sm font-medium ${getStatusColor(
+                      stage.status
+                    )}`}
+                  >
+                    {stage.name}
+                  </span>
+                </div>
 
-        <div className="space-y-3">
-          {pipelineData.stages.map((stage, index) => (
-            <div
-              key={index}
-              className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${
-                stage.status === 'failed'
-                  ? 'bg-red-500/10 border-red-500/20 shadow-sm shadow-red-500/10'
-                  : 'bg-[#0B1020]/70 border-gray-800'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {getStatusIcon(stage.status)}
-
-                <span
-                  className={`text-sm font-medium ${getStatusColor(
-                    stage.status
-                  )}`}
-                >
-                  {stage.name}
+                <span className="text-xs text-gray-500 font-mono">
+                  {stage.duration}
                 </span>
               </div>
-
-              <span className="text-xs text-gray-500 font-mono">
-                {stage.duration}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ERROR LOG */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
-            Error Log
-          </h3>
+      {errorLog && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+              Error Log
+            </h3>
+            <span className="text-xs text-red-400">Critical Failure</span>
+          </div>
 
-          <span className="text-xs text-red-400">
-            Critical Failure
-          </span>
+          <div className="bg-black/40 border border-red-500/20 rounded-2xl p-4 overflow-x-auto shadow-inner max-h-64 overflow-y-auto">
+            <pre className="text-xs text-red-300 font-mono whitespace-pre-wrap leading-6">
+              {errorLog}
+            </pre>
+          </div>
         </div>
-
-        <div className="bg-black/40 border border-red-500/20 rounded-2xl p-4 overflow-x-auto shadow-inner">
-          <pre className="text-xs text-red-300 font-mono whitespace-pre-wrap leading-6">
-            {pipelineData.errorLog}
-          </pre>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
