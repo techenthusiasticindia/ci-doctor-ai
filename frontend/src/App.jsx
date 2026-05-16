@@ -90,11 +90,18 @@ function App() {
         method: "POST",
       })
       const data = await res.json()
+      if (!res.ok) {
+        console.error("Diagnosis API error:", data.error)
+        setError(data.error || "Diagnosis failed")
+        return
+      }
       setDiagnosis(data.diagnosis)
+      setError(null)
       // Refresh dashboard stats
       fetchDashboard()
     } catch (err) {
       console.error("Diagnosis failed:", err)
+      setError("Failed to run AI diagnosis. Check backend logs.")
     } finally {
       setLoading((prev) => ({ ...prev, diagnosis: false }))
     }
@@ -108,11 +115,18 @@ function App() {
         method: "POST",
       })
       const data = await res.json()
+      if (!res.ok) {
+        console.error("Fix API error:", data.error)
+        setError(data.error || "Fix generation failed")
+        return
+      }
       setFix(data.fix)
+      setError(null)
       // Refresh dashboard stats
       fetchDashboard()
     } catch (err) {
       console.error("Fix generation failed:", err)
+      setError("Failed to generate AI fix. Check backend logs.")
     } finally {
       setLoading((prev) => ({ ...prev, fix: false }))
     }
