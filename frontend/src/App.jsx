@@ -24,10 +24,11 @@ function App() {
   })
   const [error, setError] = useState(null)
 
-  // Fetch dashboard stats
+  // Fetch dashboard stats on mount
   useEffect(() => {
     fetchDashboard()
     fetchPipelines()
+  // eslint-disable-next-line
   }, [])
 
   async function fetchDashboard() {
